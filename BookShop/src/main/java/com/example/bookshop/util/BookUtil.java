@@ -53,4 +53,14 @@ public class BookUtil {
         }
         return bookList;
     }
+
+    public List<BookDto> addBook(List<Book> books) {
+        List<BookDto> bookDtos = new ArrayList<>();
+        for (Book book : books) {
+            BookDto bookDto = new BookDto(book.getId(), book.getName(), book.getDescription(), book.getPrice() + "", book.getDiscounted_price() + "", book.getQuantity(), book.getQuantitySold(),
+                    book.getImage(), book.getThumbnail(), book.getAuthor().getId(), book.getSupplier().getId(), book.getCategory().getId());
+            bookDtos.add(bookDto);
+        }
+        return bookDtos;
+    }
 }
