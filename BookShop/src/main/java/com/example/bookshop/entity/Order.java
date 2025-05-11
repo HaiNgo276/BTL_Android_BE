@@ -36,6 +36,12 @@ public class Order {
     @JoinColumn(name = "customerId")
     private Customer customer;
     @ManyToOne
+    @JoinColumn(name = "shipping_id")
+    private Shipping shipping;
+    @ManyToOne
+    @JoinColumn(name = "payment_id")
+    private Payment payment;
+    @ManyToOne
     @JoinColumn(name = "order_status_id")
     private OrderStatus orderStatus;
 
