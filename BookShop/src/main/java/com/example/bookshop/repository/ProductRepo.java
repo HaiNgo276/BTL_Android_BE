@@ -1,0 +1,43 @@
+package com.example.bookshop.repository;
+
+import com.example.bookshop.entity.Book;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import java.util.List;
+
+public interface ProductRepo extends JpaRepository<Book, Integer> {
+    @Query("SELECT p FROM Book p WHERE LENGTH(p.description) >= :descriptionLength")
+    Page<Book> getProducts(
+            int descriptionLength, Pageable pageable);
+
+    Book save(Book book);
+
+    Book findById(int bookId);
+
+    Book findByName(String bookName);
+
+    List<Book> findTop20ByOrderByIdDesc();
+
+    List<Book> findTop20ByOrderByQuantitySoldDesc();
+
+    List<Book> findTop5ByBannerIsNotNullOrderByIdDesc();
+
+    List<Book> findTop5ByOrderByQuantitySoldDesc();
+
+
+    @Query("SELECT b from Book  b where length(b.description)>= :descriptionLength and b.name like %:query% ORDER BY b.id DESC")
+    Page<Book> findByProductNews(int descriptionLength, String query, Pageable pageable);
+
+    @Query("SELECT b from Book b where length(b.description)>= :descriptionLength and b.name like %:query% ORDER BY b.quantitySold DESC")
+    Page<Book> findByProductSelling(int descriptionLength, String query, Pageable pageable);
+
+    @Query("SELECT b from Book b where length(b.description)>= :descriptionLength and b.name like %:query% ORDER BY b.discounted_price ASC ")
+    Page<Book> findByProductPriceSortAsc(int descriptionLength, String query, Pageable pageable);
+
+    @Query("SELECT b from Book b where length(b.description)>= :descriptionLength and b.name like %:query% ORDER BY b.discounted_price DESC ")
+    Page<Book> findByProductPriceSortDesc(int descriptionLength, String query, Pageable pageable);
+}
