@@ -18,6 +18,8 @@ public class CartItemService {
     private CartItemRepo cartItemRepo;
     @Autowired
     private ProductRepo productRepo;
+    @Autowired
+    private CartRepo cartRepo;
 
     public CartItem save(CartItem cartItem) {
         return cartItemRepo.save(cartItem);
@@ -49,6 +51,32 @@ public class CartItemService {
             Book book = cartItem.getBook();
             book.setQuantitySold(book.getQuantitySold() - cartItem.getQuantity());
             productRepo.save(book);
+        }
+    }
+
+    public List<Book> getAllBooksInCart(int customerId) {
+        return cartItemRepo.getAllBooksInCart(customerId);
+    }
+    public void addWishlistToCart(int customerId, List<Book> booksInWishlist) {
+        List<Book> booksInCart = getAllBooksInCart(customerId);
+        for (Book book : booksInWishlist) {
+            if(book.getQuantity()-book.getQuantitySold()>0){
+                if (booksInCart.contains(book)) {
+                    CartItem cartItem = findByBookIdAndCustomerId(book.getId(), customerId);
+                    cartItem.setQuantity(cartItem.getQuantity() + 1);
+                    cartItemRepo.save(cartItem);
+                } else {
+                    Cart cart = cartRepo.findByCustomerId(customerId);
+                    CartItem cartItem = new CartItem();
+                    cartItem.setAddOn(LocalDateTime.now());
+                    cartItem.setQuantity(1);
+                    cartItem.setBook(book);
+                    cartItem.setCart(cart);
+                    cartItemRepo.save(cartItem);
+                }
+                book.setQuantitySold(book.getQuantitySold()+1);
+                productRepo.save(book);
+            }
         }
     }
 }

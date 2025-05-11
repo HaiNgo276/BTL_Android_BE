@@ -126,6 +126,46 @@ public class CartController {
         }
     }
 
-
-
+    @PostMapping("/add/wishlist")
+    public ResponseEntity<?> addWishListToCart(@RequestHeader("user-key") String userKey) {
+        if (jwtUtil.isTokenExpired(userKey.replace("Bearer ", ""))) {
+            int customerId = Integer.parseInt(jwtUtil.extractId(userKey.replace("Bearer ", "")));
+            List<Book> booksInWishlist = wishListItemService.getAllBooksInWishlist(customerId);
+            if (booksInWishlist.size() == 0) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new Error(404, "CARD_01", "Không có sản phẩm nào trong wishlist để thêm", ""));
+            } else {
+                int dem = 0;
+                for (Book book : booksInWishlist) {
+                    if (book.getQuantity() - book.getQuantitySold() == 0)
+                        dem++;
+                }
+                if (dem == booksInWishlist.size()) {
+                    return ResponseEntity.ok(new Message("Tất cả sản phẩm trong danh sách yêu thích tạm hết!"));
+                } else {
+                    cartItemService.addWishlistToCart(customerId, booksInWishlist);
+                    return ResponseEntity.ok(new Message("Đã thêm toàn bộ sản phẩm vào giỏ hàng!"));
+                }
+            }
+        } else {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new Error(401, "AUT_02", "Userkey không hợp lệ hoặc đã hết hạn!", "USER_KEY"));
+        }
+    }
+    @GetMapping("")
+    public ResponseEntity<?> getProductsInCart(@RequestHeader("user-key") String userKey) {
+        if (jwtUtil.isTokenExpired(userKey.replace("Bearer ", ""))) {
+            int customerId = Integer.parseInt(jwtUtil.extractId(userKey.replace("Bearer ", "")));
+            List<CartItem> cartItems = cartItemService.getAllByCustomerId(customerId);
+            List<Book> booksInWishlist = wishListItemService.getAllBooksInWishlist(customerId);
+            List<BookInCartDto> products = new BookUtil().addToBookInCartDto(cartItems, booksInWishlist);
+            CartResponse response;
+            if (cartItems.size() > 0) {
+                response = new CartResponse(cartItems.get(0).getCart().getId(), products);
+            } else {
+                response = new CartResponse("", products);
+            }
+            return ResponseEntity.ok(response);
+        } else {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new Error(401, "AUT_02", "Userkey không hợp lệ hoặc đã hết hạn!", "USER_KEY"));
+        }
+    }
 }
