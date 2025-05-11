@@ -134,4 +134,65 @@ public class OrderController {
         }
     }
 
+    @GetMapping("/status/{orderStatusId}")
+    public ResponseEntity<?> getAllOrderByOrderStatus(@PathVariable("orderStatusId") int orderStatusId) {
+        List<OrderDto> orders = orderService.getOrderByOrderStatus(orderStatusId);
+        return ResponseEntity.ok(new OrderResponse(orders.size(), orders));
+    }
+
+    @GetMapping("/detail/{order_id}")
+    public ResponseEntity<?> getOrderDetail(@PathVariable("order_id") int orderId) {
+        List<OrderDetail> orderDetails = orderDetailService.getAllByOrderId(orderId);
+        Order order = orderService.getOrderById(orderId);
+        OrderDetailResponse response = new OrderUtil().addToOrderDetail(order, orderDetails, 0, null);
+
+        return ResponseEntity.ok(response);
+    }
+
+    @PutMapping("/status")
+    public ResponseEntity<?> updateOrderStatus(@RequestParam("orderId") int orderId,
+                                               @RequestParam("orderStatusId") int orderStatusId) {
+        Order order = orderService.getOrderById(orderId);
+        OrderStatus orderStatus = orderStatusService.findById(orderStatusId);
+        if(orderStatusId==4){
+            List<OrderDetail> orderDetails=orderDetailService.getAllByOrderId(orderId);
+            for(OrderDetail orderDetail:orderDetails){
+                Book book=productService.findById(orderDetail.getBook().getId());
+                book.setQuantitySold(book.getQuantitySold()-orderDetail.getQuantity());
+                productService.addBook(book);
+            }
+        }
+        order.setOrderStatus(orderStatus);
+        order.setShippedOn(new Date());
+        orderService.save(order);
+        return ResponseEntity.ok(new Message("Đã cập nhật trạng thái đơn hàng thành công"));
+    }
+
+    @GetMapping("/year/{year}")
+    public ResponseEntity<?> getAllOrderByYear(@PathVariable("year") int year) throws ParseException {
+        SimpleDateFormat smf = new SimpleDateFormat("dd/MM/yyyy hh:mm:ss");
+        Date start = smf.parse("01/01/" + year + " 00:00:00");
+        Date end = smf.parse("31/12/" + year + " 23:59:59");
+        List<OrderDto> orders = orderService.getOrderByTime(start, end);
+        return ResponseEntity.ok(new OrderResponse(orders.size(), orders));
+    }
+
+    @GetMapping("/monthOfYear")
+    public ResponseEntity<?> getAllOrderByMonthOfYear(@RequestParam("year") int year,
+                                                      @RequestParam("month") int month) throws ParseException {
+        SimpleDateFormat smf = new SimpleDateFormat("dd/MM/yyyy hh:mm:ss");
+        Date start = smf.parse("01/" + month + "/" + year + " 00:00:00");
+        Date end = smf.parse("31/" + month + "/" + year + " 23:59:59");
+        List<OrderDto> orders = orderService.getOrderByTime(start, end);
+        return ResponseEntity.ok(new OrderResponse(orders.size(), orders));
+    }
+
+    @GetMapping("/today")
+    public ResponseEntity<?> getAllOrderByToday(@RequestParam("today") String today) throws ParseException {
+        SimpleDateFormat smf = new SimpleDateFormat("dd/MM/yyyy hh:mm:ss");
+        Date start = smf.parse(today + " 00:00:00");
+        Date end = smf.parse(today + " 23:59:59");
+        List<OrderDto> orders = orderService.getOrderByTime(start, end);
+        return ResponseEntity.ok(new OrderResponse(orders.size(), orders));
+    }
 }
