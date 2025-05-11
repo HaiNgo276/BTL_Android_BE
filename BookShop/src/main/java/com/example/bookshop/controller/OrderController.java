@@ -47,7 +47,12 @@ public class OrderController {
     private OrderDetailService orderDetailService;
     @Autowired
     private ProductService productService;
-
+    @Autowired
+    private ReceiverService receiverService;
+    @Autowired
+    private ShippingService shippingService;
+    @Autowired
+    private PaymentService paymentService;
     @Autowired
     private JwtUtil jwtUtil;
 
@@ -83,6 +88,50 @@ public class OrderController {
         }
     }
 
-
+    @PostMapping("")
+    public ResponseEntity<?> createOrder(@RequestHeader("user-key") String userKey,
+                                         @RequestParam("cart_id") String cartId,
+                                         @RequestParam("shipping_id") int shippingId,
+                                         @RequestParam("payment_id") int paymentId,
+                                         @RequestParam("receiver_id") int receiverId) throws MessagingException, UnsupportedEncodingException {
+        if (jwtUtil.isTokenExpired(userKey.replace("Bearer ", ""))) {
+            int customerId = Integer.parseInt(jwtUtil.extractId(userKey.replace("Bearer ", "")));
+            List<CartItem> cartItems = cartItemService.getAllByCustomerId(customerId);
+            if (cartItems.size() == 0) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new Error(404, "CART_02", "Giỏ hàng của bạn không có sản phẩm để thanh toán!", ""));
+            } else {
+                BigDecimal subTotal = new BigDecimal("0");
+                for (CartItem cartItem : cartItems) {
+                    subTotal = subTotal.add(cartItem.getBook().getDiscounted_price().multiply(new BigDecimal(cartItem.getQuantity())));
+                }
+                Customer customer = customerService.findById(customerId);
+                Receiver receiver = receiverService.findById(receiverId);
+                if (receiver == null) {
+                    return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new Error(404, "RECEIVER_02", "Không tìm thấy người nhận!", "RECEIVER"));
+                } else {
+                    Order order = new Order();
+                    OrderStatus orderStatus = new OrderStatus();
+                    orderStatus.setId(1);
+                    orderStatus.setStatus("Đang được chuẩn bị");
+                    order.setCreateOn(new Date());
+                    order.setAddress(receiver.getAddress());
+                    order.setReceiverName(receiver.getReceiverName());
+                    order.setReceiverPhone(receiver.getReceiverPhone());
+                    order.setShipping(shippingService.findById(shippingId));
+                    order.setTotalAmount(subTotal);
+                    order.setOrderStatus(orderStatus);
+                    order.setCustomer(customer);
+                    order.setPayment(paymentService.getPaymentById(paymentId));
+                    emailService.sendMailOrder(receiver, customer, order, cartItems);
+                    orderService.save(order);
+                    orderDetailService.save(order, cartItems);
+                    cartItemService.emptyCart(cartId);
+                    return ResponseEntity.ok(new Message("Đặt hàng thành công"));
+                }
+            }
+        } else {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new Error(401, "AUT_02", "Userkey không hợp lệ hoặc đã hết hạn!", "USER_KEY"));
+        }
+    }
 
 }

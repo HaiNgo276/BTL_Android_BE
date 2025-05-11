@@ -1,6 +1,9 @@
 package com.example.bookshop.service;
 
+import com.example.bookshop.entity.CartItem;
 import com.example.bookshop.entity.Customer;
+import com.example.bookshop.entity.Order;
+import com.example.bookshop.entity.Receiver;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -37,6 +40,46 @@ public class EmailService {
         System.out.println("Send email successful");
     }
 
+    public void sendMailOrder(Receiver receiver, Customer customer, Order order, List<CartItem> cartItems) throws MessagingException, UnsupportedEncodingException {
+        String subject = "Đơn hàng của bạn đã được đặt thành công!";
+        String text = "<strong>Xin chào: <em>" + customer.getName() + ",</em> cảm ơn bạn vì đã đặt hàng. </strong>" +
+                "<p>Thời gian đặt hàng: " + order.getCreateOn() + "</p>" +
+                "<p>Tên người nhận hàng: <em>" + receiver.getReceiverName() + "</em></p>" +
+                "<p>Số điện thoại người nhận: <em>" + receiver.getReceiverPhone() + "</em></p>" +
+                "<p>Địa chỉ người nhận: <em>" + receiver.getAddress() + "</em></p>" +
+                "<p style='font-weight: bold;'>SAU ĐÂY LÀ THÔNG TIN CHI TIẾT ĐƠN HÀNG CỦA BẠN:</p>" +
+                "<table>" +
+                "<tr>" +
+                "<th>STT</th>" +
+                "<th>Ảnh sản phẩm</th>" +
+                "<th>Tên sản phẩm</th>" +
+                "<th>Đơn giá</th>" +
+                "<th>Số lượng</th>" +
+                "</tr>";
+        int index = 0;
+        BigDecimal subTotal = new BigDecimal("0");
+        DecimalFormat formatter = new DecimalFormat("#,### đ");
+        for (CartItem cartItem : cartItems) {
+            index++;
+            subTotal = subTotal.add(cartItem.getBook().getDiscounted_price().multiply(new BigDecimal(cartItem.getQuantity())));
+            text += "<tr>" +
+                    "<td width='50' height='175' style='text-align: center;'>" + index + "</td>" +
+                    "<td width='200' height='175' style='text-align: center;'><img src='" + cartItem.getBook().getImage() + "' alt='" + cartItem.getBook().getName() + "' width='140' height='140'></td>" +
+                    "<td width='500' height='175' style='text-align: center;'>" + cartItem.getBook().getName() + "</td>" +
+                    "<td width='125' height='175' style='text-align: center;'>" + formatter.format(cartItem.getBook().getDiscounted_price()) + "</td>" +
+                    "<td width='100' height='175' style='text-align: center;'>" + cartItem.getQuantity() + "</td>" +
+                    "</tr>";
+        }
+        text += "</table>" +
+                "<span style='font-weight: bold;'>Tổng tiền: " + formatter.format(subTotal) + "</span><br>" +
+                "<span style='font-weight: bold;'>Phí vận chuyển: " + formatter.format(order.getShipping().getShippingCost()) + "</span><br>" +
+                "<span style='font-weight: bold;'>Tổng thanh toán: " + formatter.format(subTotal.add(order.getShipping().getShippingCost())) + "</span></br>" +
+                "<hr>" +
+                "<span>Trân trọng,</span><br>" +
+                "<span>Đội ngũ BookShop.</span>";
+        String email = customer.getEmail();
+        sendEmail(email, subject, text);
+    }
 
     public void sendMailForgotPass(Customer customer, String email, PasswordEncoder bCryptPasswordEncoder, String newPass) throws MessagingException, UnsupportedEncodingException {
         String subject = "Mật khẩu mới trên hệ thống BookShop";

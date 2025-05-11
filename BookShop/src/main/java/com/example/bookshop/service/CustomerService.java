@@ -43,6 +43,10 @@ public class CustomerService implements UserDetailsService {
         return customerRepo.findByEmail(email);
     }
 
+    public Customer findById(int customerId) {
+        return customerRepo.findById(customerId);
+    }
+
     @Override
     public UserDetails loadUserByUsername(String s) throws UsernameNotFoundException {
         Customer customer = customerRepo.findByEmail(s);
@@ -51,5 +55,6 @@ public class CustomerService implements UserDetailsService {
         }
         return new org.springframework.security.core.userdetails.User(customer.getName(), customer.getPassword(), Collections.singletonList(new SimpleGrantedAuthority("ROLE_"+customer.getRole().toUpperCase())));
     }
+
 
 }
