@@ -47,6 +47,9 @@ public class CustomerService implements UserDetailsService {
         return customerRepo.findById(customerId);
     }
 
+    public Customer getCustomer(int id) {
+        return customerRepo.findById(id);
+    }
     @Override
     public UserDetails loadUserByUsername(String s) throws UsernameNotFoundException {
         Customer customer = customerRepo.findByEmail(s);
