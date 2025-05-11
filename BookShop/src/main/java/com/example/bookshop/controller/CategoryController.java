@@ -1,5 +1,6 @@
 package com.example.bookshop.controller;
 
+import com.example.bookshop.dto.objectdto.categorydto.CategoryBestSeller;
 import com.example.bookshop.dto.response.Message;
 import com.example.bookshop.dto.response.category.CategoryResponse;
 import com.example.bookshop.entity.Category;
@@ -51,5 +52,22 @@ public class CategoryController {
         return ResponseEntity.ok(new Message("Đã xóa thành công"));
     }
 
+    @GetMapping("/hot")
+    public ResponseEntity<?> getCategoryHot() {
+        List<Category> categories = categoryService.getCategoryHot();
+        CategoryResponse response = new CategoryResponse(categories.size(), categories);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/bestseller")
+    public ResponseEntity<?> getCategoryBestSeller() {
+        List<Object[]> categoryBestSellers = categoryService.getCategoryBestSeller();
+        List<CategoryBestSeller> response = new ArrayList<>();
+        for (Object[] object : categoryBestSellers) {
+            Category category=(Category) object[0];
+            response.add(new CategoryBestSeller(category, (Long)object[1]));
+        }
+        return ResponseEntity.ok(response);
+    }
 }
 
