@@ -19,5 +19,8 @@ public class ProductService {
         return productRepo.findById(id);
     }
 
+    public Book addBook(Book book) {
+        return productRepo.save(book);
+    }
 
 }
