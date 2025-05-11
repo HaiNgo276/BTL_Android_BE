@@ -40,4 +40,11 @@ public interface ProductRepo extends JpaRepository<Book, Integer> {
 
     @Query("SELECT b from Book b where length(b.description)>= :descriptionLength and b.name like %:query% ORDER BY b.discounted_price DESC ")
     Page<Book> findByProductPriceSortDesc(int descriptionLength, String query, Pageable pageable);
+
+    @Query("SELECT b FROM Book b WHERE b.author.id= :authorId AND LENGTH(b.description)>= :descriptionLength")
+    Page<Book> findByAuthorIdAndDescriptionLengthGreaterThanEqual(
+            int authorId, int descriptionLength, Pageable pageable);
+
+    @Query("SELECT b from Book b where length(b.description)>= :descriptionLength and b.name like %:query% and b.author.id= :authorId")
+    Page<Book> searchProductByAuthor(int descriptionLength, String query, int authorId, Pageable pageable);
 }

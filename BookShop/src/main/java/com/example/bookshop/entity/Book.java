@@ -52,4 +52,8 @@ public class Book {
 
     @Column(name = "banner_url")
     private String banner;
+
+    @ManyToOne
+    @JoinColumn(name = "author_id")
+    private Author author;
 }
