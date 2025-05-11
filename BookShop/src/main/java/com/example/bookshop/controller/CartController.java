@@ -103,7 +103,28 @@ public class CartController {
         }
     }
 
-
+    @PostMapping("/update")
+    public ResponseEntity<?> changeProductQuantity(@RequestHeader("user-key") String userKey,
+                                                   @RequestParam("item_id") int itemId,
+                                                   @RequestParam("quantity") int quantity) {
+        if (jwtUtil.isTokenExpired(userKey.replace("Bearer ", ""))) {
+            int customerId = Integer.parseInt(jwtUtil.extractId(userKey.replace("Bearer ", "")));
+            CartItem cartItem = cartItemService.findByIdAndCustomerId(itemId, customerId);
+            if (cartItem == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new Error(404, "CART_01", "Sản phẩm này không trong giỏ hàng của bạn!", "ITEM_ID"));
+            } else {
+                int quantityBookBefore = cartItem.getQuantity();
+                cartItem.setQuantity(quantity);
+                Book book = cartItem.getBook();
+                book.setQuantitySold(book.getQuantitySold() + (quantity - quantityBookBefore));
+                productService.addBook(book);
+                cartItemService.save(cartItem);
+                return ResponseEntity.ok(new Message("Đã thay đổi số lượng"));
+            }
+        } else {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new Error(401, "AUT_02", "Userkey không hợp lệ hoặc đã hết hạn!", "USER_KEY"));
+        }
+    }
 
 
 
