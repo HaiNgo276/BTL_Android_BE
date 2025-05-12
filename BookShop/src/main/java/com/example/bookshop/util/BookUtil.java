@@ -63,4 +63,22 @@ public class BookUtil {
         }
         return bookDtos;
     }
+
+    public List<BookBannerDto> addBookBanner(List<Book> books) {
+        List<BookBannerDto> bookBannerDtos = new ArrayList<>();
+        for (Book book : books) {
+            BookBannerDto bookBanner = new BookBannerDto();
+            bookBanner.setProduct_id(book.getId());
+            bookBanner.setName(book.getName());
+            bookBanner.setDescription(book.getDescription());
+            bookBanner.setPrice(book.getPrice() + "");
+            bookBanner.setDiscounted_price(book.getDiscounted_price() + "");
+            bookBanner.setQuantity(book.getQuantity());
+            bookBanner.setQuantitySold(book.getQuantitySold());
+            bookBanner.setThumbnail(book.getThumbnail());
+            bookBanner.setBanner_url(book.getBanner());
+            bookBannerDtos.add(bookBanner);
+        }
+        return bookBannerDtos;
+    }
 }

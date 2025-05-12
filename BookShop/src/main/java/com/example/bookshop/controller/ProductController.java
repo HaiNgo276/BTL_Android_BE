@@ -3,9 +3,14 @@ package com.example.bookshop.controller;
 import com.example.bookshop.dto.objectdto.bookdto.*;
 import com.example.bookshop.dto.response.Error;
 import com.example.bookshop.dto.response.book.*;
+import com.example.bookshop.dto.response.rating.RatingResponse;
 import com.example.bookshop.entity.Book;
+import com.example.bookshop.entity.Rating;
 import com.example.bookshop.service.ProductService;
+import com.example.bookshop.service.RatingService;
 import com.example.bookshop.util.BookUtil;
+import com.example.bookshop.util.RatingUtil;
+
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +29,8 @@ import java.util.List;
 public class ProductController {
     @Autowired
     private ProductService productService;
+    @Autowired
+    private RatingService ratingService;
 
     @GetMapping("")
     public ResponseEntity<?> getAll(@RequestParam("page") int page, @RequestParam("limit") int limit, @RequestParam("description_length") int descriptionLength) {
@@ -94,6 +101,23 @@ public class ProductController {
         List<BookDto> bookDtos = new BookUtil().addBook(books.getContent());
         BookResponse response = new BookResponse(bookDtos.size(), bookDtos);
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/banner")
+    public ResponseEntity<?> getProductsRecommend() {
+        List<Book> products = productService.getProductsBanner();
+        List<BookBannerDto> bookBannerDtos = new BookUtil().addBookBanner(products);
+        BookBannerResponse response = new BookBannerResponse(bookBannerDtos.size(), bookBannerDtos);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/rating")
+    public ResponseEntity<?> getRatingByBook(@RequestParam("bookId") int bookId,
+                                             @RequestParam("limit") int limit,
+                                             @RequestParam("page") int page) {
+        Page<Rating> ratings = ratingService.getAllByBookId(bookId, limit, page);
+        RatingResponse ratingResponse = new RatingResponse(ratings.getContent().size(), new RatingUtil().addToRatingDto(ratings.getContent()));
+        return ResponseEntity.ok(ratingResponse);
     }
 
     @ExceptionHandler(MaxUploadSizeExceededException.class)
