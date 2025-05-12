@@ -120,6 +120,30 @@ public class ProductController {
         return ResponseEntity.ok(ratingResponse);
     }
 
+    @GetMapping("/incategory/{categoryId}")
+    public ResponseEntity<?> getProductsByCategory(@PathVariable int categoryId, @RequestParam("description_length") int descriptionLength, @RequestParam("page") int page, @RequestParam("limit") int limit) {
+        Page<Book> products = productService.findProductsByCategory(categoryId, descriptionLength, page, limit);
+        List<BookHotNewDto> bookByCategory = new BookUtil().addBookNewHot(products.getContent());
+        BookInCategoryResponse response = new BookInCategoryResponse(bookByCategory.size(), bookByCategory);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/supplier")
+    public ResponseEntity<?> getProductBySupplier(@RequestParam("supplier_id") int supplierId, @RequestParam("limit") int limit, @RequestParam("page") int page, @RequestParam("description_length") int descriptionLength) {
+        Page<Book> books = productService.findProductsBySupplier(supplierId, limit, page, descriptionLength);
+        List<BookDto> bookBySupplier = new BookUtil().addBook(books.getContent());
+        BookResponse response = new BookResponse(bookBySupplier.size(), bookBySupplier);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/author")
+    public ResponseEntity<?> getProductByAuthor(@RequestParam("author_id") int authorId, @RequestParam("limit") int limit, @RequestParam("page") int page, @RequestParam("description_length") int descriptionLength) {
+        Page<Book> books = productService.findProductsByAuthor(authorId, limit, page, descriptionLength);
+        List<BookDto> bookByAuthor = new BookUtil().addBook(books.getContent());
+        BookResponse response = new BookResponse(bookByAuthor.size(), bookByAuthor);
+        return ResponseEntity.ok(response);
+    }
+
     @ExceptionHandler(MaxUploadSizeExceededException.class)
     public ResponseEntity<?> handleFileSizeLimitExceededException() {
         return ResponseEntity.badRequest().body(new Error(400, "FILE_01", "Kích thước tệp tin vượt quá giới hạn cho phép(3MB).", "FILE"));
