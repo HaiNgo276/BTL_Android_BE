@@ -4,7 +4,9 @@ import com.example.bookshop.config.jwt.JwtUtil;
 import com.example.bookshop.dto.objectdto.authordto.AuthorDto;
 import com.example.bookshop.dto.objectdto.bookdto.*;
 import com.example.bookshop.dto.objectdto.supplierdto.SupplierDto;
+import com.example.bookshop.dto.request.BookRequest;
 import com.example.bookshop.dto.response.Error;
+import com.example.bookshop.dto.response.Message;
 import com.example.bookshop.dto.response.book.*;
 import com.example.bookshop.dto.response.rating.RatingResponse;
 import com.example.bookshop.entity.Book;
@@ -13,6 +15,7 @@ import com.example.bookshop.service.ProductService;
 import com.example.bookshop.service.RatingService;
 import com.example.bookshop.service.WishListItemService;
 import com.example.bookshop.util.BookUtil;
+import com.example.bookshop.util.MultilPartFile;
 import com.example.bookshop.util.RatingUtil;
 
 import lombok.AllArgsConstructor;
@@ -24,6 +27,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -171,8 +177,65 @@ public class ProductController {
         }
     }
 
+     @PostMapping("/add")
+    public ResponseEntity<?> addBook(@RequestBody BookRequest bookRequest) throws IOException {
+        Book bookIsExist = productService.findByName(bookRequest.getName());
+        if (bookIsExist != null) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(new Message("Sản phẩm này đã tồn tại trong hệ thống"));
+        } else {
+            BookUtil bookUtil = new BookUtil();
+            MultipartFile multipartFile = new MultilPartFile().createMultipartFileFromUrl(bookRequest.getImage(), bookRequest.getFileName());
+            String imageURL = bookUtil.uploadFile(multipartFile, "product");
+            Book book = bookUtil.setBookFromRequest(bookRequest);
+            book.setImage(imageURL.replace("http", "https"));
+            book.setThumbnail(imageURL.replace("http", "https"));
+            if (bookRequest.getIsBannerSelected()) {
+                book.setBanner(imageURL.replace("http", "https"));
+            }
+            productService.addBook(book);
+            return ResponseEntity.ok(new Message("Đã thêm sản phẩm thành công!"));
+        }
+    }
+
+    @PutMapping("/update")
+
+    public ResponseEntity<?> updateBook(@RequestBody BookRequest bookRequest) throws IOException {
+        BookUtil bookUtil = new BookUtil();
+        Book book = bookUtil.setBookFromRequest(bookRequest);
+        if (bookRequest.getFileName() != null) {
+            MultipartFile multipartFile = new MultilPartFile().createMultipartFileFromUrl(bookRequest.getImage(), bookRequest.getFileName());
+            String imageURL = bookUtil.uploadFile(multipartFile, "product");
+            book.setImage(imageURL.replace("http", "https"));
+            book.setThumbnail(imageURL.replace("http", "https"));
+            if (bookRequest.getIsBannerSelected()) {
+                book.setBanner(imageURL.replace("http", "https"));
+            }
+        } else {
+            book.setImage(bookRequest.getImage());
+            book.setThumbnail(book.getImage());
+            if (bookRequest.getIsBannerSelected()) {
+                book.setBanner(book.getImage());
+            }
+        }   
+        book.setId(bookRequest.getId());
+        productService.addBook(book);
+        return ResponseEntity.ok(new Message("Đã cập nhật sản phẩm thành công!"));
+    }
+
     @ExceptionHandler(MaxUploadSizeExceededException.class)
     public ResponseEntity<?> handleFileSizeLimitExceededException() {
         return ResponseEntity.badRequest().body(new Error(400, "FILE_01", "Kích thước tệp tin vượt quá giới hạn cho phép(3MB).", "FILE"));
+    }
+
+    @GetMapping("/detail/{product_id}")
+    public ResponseEntity<?> getProductDetailAdmin(@PathVariable("product_id") int productId) {
+        Book book = productService.findById(productId);
+        return ResponseEntity.ok(book);
+    }
+
+    @DeleteMapping("/delete/{product_id}")
+    public ResponseEntity<?> deleteProduct(@PathVariable("product_id") int productId) {
+        productService.deleteBook(productId);
+        return ResponseEntity.ok(new Message("Đã xóa sản phẩm thành công"));
     }
 }

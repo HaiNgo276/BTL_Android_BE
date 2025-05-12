@@ -1,14 +1,25 @@
 package com.example.bookshop.util;
 
+import com.cloudinary.Cloudinary;
 import com.example.bookshop.dto.objectdto.bookdto.*;
+import com.example.bookshop.dto.request.BookRequest;
 import com.example.bookshop.entity.Book;
 import com.example.bookshop.entity.CartItem;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
+import org.springframework.web.multipart.MultipartFile;
+
 
 public class BookUtil {
+    private final Cloudinary cloudinary = new Cloudinary();
+
     public List<BookHotNewDto> addBookNewHot(List<Book> books) {
         List<BookHotNewDto> bookHotNews = new ArrayList<>();
         for (Book book : books) {
@@ -103,5 +114,29 @@ public class BookUtil {
         }
         bookDetailDto.setWishlist(wishlist);
         return bookDetailDto;
+    }
+
+    public String uploadFile(MultipartFile multipartFile, String folderName) throws IOException {
+        Map<String, Object> uploadParams = new HashMap<>();
+        uploadParams.put("public_id", UUID.randomUUID().toString());
+        uploadParams.put("folder", folderName);
+
+        return cloudinary.uploader()
+                .upload(multipartFile.getBytes(), uploadParams)  //chuyển đổi tệp đa phương tiện thành mảng byte sau đó upload
+                .get("url")                                     //truy xuất URL của tệp
+                .toString();
+    }
+
+    public Book setBookFromRequest(BookRequest bookRequest) {
+        Book book = new Book();
+        book.setName(bookRequest.getName());
+        book.setDescription(bookRequest.getDescription());
+        book.setQuantity(bookRequest.getQuantity());
+        book.setPrice(bookRequest.getPrice());
+        book.setDiscounted_price(bookRequest.getDiscounted_price());
+        book.setAuthor(bookRequest.getAuthor());
+        book.setCategory(bookRequest.getCategory());
+        book.setSupplier(bookRequest.getSupplier());
+        return book;
     }
 }
