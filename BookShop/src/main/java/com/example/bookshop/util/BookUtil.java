@@ -81,4 +81,27 @@ public class BookUtil {
         }
         return bookBannerDtos;
     }
+
+    public BookDetailDto addBookDetailDto(Book book, List<Book> booksInWishlist, double ratingLevel) {
+        BookDetailDto bookDetailDto = new BookDetailDto();
+        bookDetailDto.setProduct_id(book.getId());
+        bookDetailDto.setName(book.getName());
+        bookDetailDto.setDescription(book.getDescription());
+        bookDetailDto.setPrice(book.getPrice() + "");
+        bookDetailDto.setDiscounted_price(book.getDiscounted_price() + "");
+        bookDetailDto.setQuantity(book.getQuantity());
+        bookDetailDto.setQuantitySold(book.getQuantitySold());
+        bookDetailDto.setThumbnail(book.getThumbnail());
+        bookDetailDto.setRatingLevel(ratingLevel);
+        int wishlist = 0;
+        if (booksInWishlist != null) {
+            for (Book bookWishlist : booksInWishlist) {
+                if (book.getId() == bookWishlist.getId()) {
+                    wishlist = 1;
+                }
+            }
+        }
+        bookDetailDto.setWishlist(wishlist);
+        return bookDetailDto;
+    }
 }

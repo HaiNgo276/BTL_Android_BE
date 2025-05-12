@@ -1,6 +1,9 @@
 package com.example.bookshop.controller;
 
+import com.example.bookshop.config.jwt.JwtUtil;
+import com.example.bookshop.dto.objectdto.authordto.AuthorDto;
 import com.example.bookshop.dto.objectdto.bookdto.*;
+import com.example.bookshop.dto.objectdto.supplierdto.SupplierDto;
 import com.example.bookshop.dto.response.Error;
 import com.example.bookshop.dto.response.book.*;
 import com.example.bookshop.dto.response.rating.RatingResponse;
@@ -8,13 +11,16 @@ import com.example.bookshop.entity.Book;
 import com.example.bookshop.entity.Rating;
 import com.example.bookshop.service.ProductService;
 import com.example.bookshop.service.RatingService;
+import com.example.bookshop.service.WishListItemService;
 import com.example.bookshop.util.BookUtil;
 import com.example.bookshop.util.RatingUtil;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
@@ -31,6 +37,10 @@ public class ProductController {
     private ProductService productService;
     @Autowired
     private RatingService ratingService;
+    @Autowired
+    private JwtUtil jwtUtil;
+    @Autowired
+    private WishListItemService wishListItemService;
 
     @GetMapping("")
     public ResponseEntity<?> getAll(@RequestParam("page") int page, @RequestParam("limit") int limit, @RequestParam("description_length") int descriptionLength) {
@@ -142,6 +152,23 @@ public class ProductController {
         List<BookDto> bookByAuthor = new BookUtil().addBook(books.getContent());
         BookResponse response = new BookResponse(bookByAuthor.size(), bookByAuthor);
         return ResponseEntity.ok(response);
+    }
+
+     @GetMapping("{product_id}")
+    public ResponseEntity<?> getProductDetail(@RequestHeader("user-key") String userKey, @PathVariable("product_id") int productId) {
+        if (jwtUtil.isTokenExpired(userKey.replace("Bearer ", ""))) {
+            int customerId = Integer.parseInt(jwtUtil.extractId(userKey.replace("Bearer ", "")));
+            List<Book> booksInWishlist = wishListItemService.getAllBooksInWishlist(customerId);
+            double ratingLevel = ratingService.ratingLevel(productId);
+            Book book = productService.findById(productId);
+            BookDetailDto bookDetailDto = new BookUtil().addBookDetailDto(book, booksInWishlist, ratingLevel);
+            SupplierDto supplierDto = new SupplierDto(book.getSupplier().getId(), book.getSupplier().getName());
+            AuthorDto authorDto = new AuthorDto(book.getAuthor().getId(), book.getAuthor().getName());
+            BookDetailResponse response = new BookDetailResponse(bookDetailDto, supplierDto, authorDto);
+            return ResponseEntity.ok(response);
+        } else {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new Error(401, "AUT_02", "Userkey không hợp lệ hoặc đã hết hạn!", "USER_KEY"));
+        }
     }
 
     @ExceptionHandler(MaxUploadSizeExceededException.class)
