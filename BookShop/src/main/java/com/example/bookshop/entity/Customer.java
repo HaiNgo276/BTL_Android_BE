@@ -46,4 +46,17 @@ public class Customer {
     @Column(name = "role",columnDefinition = "VARCHAR(10)")
     private String role;
 
+    @OneToMany(mappedBy = "customer")
+    @JsonIgnore
+    private List<Order> orders;
+    @OneToOne(mappedBy = "customer", cascade = CascadeType.ALL)
+    @JsonIgnore
+    private WishList wishList;
+    @OneToOne(mappedBy = "customer", cascade = CascadeType.ALL)
+    @JsonIgnore
+    private Cart cart;
+    @OneToMany(mappedBy = "customer", cascade = CascadeType.ALL)
+    @JsonIgnore
+    private List<Rating> ratings;
+
 }

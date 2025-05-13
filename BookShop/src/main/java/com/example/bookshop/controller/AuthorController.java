@@ -7,6 +7,7 @@ import com.example.bookshop.dto.response.author.AuthorInfoResponse;
 import com.example.bookshop.dto.response.author.AuthorResponse;
 import com.example.bookshop.entity.Author;
 import com.example.bookshop.service.AuthorService;
+import com.example.bookshop.service.CustomerService;
 import com.example.bookshop.util.AuthorUtil;
 import com.example.bookshop.util.MultilPartFile;
 
@@ -33,7 +34,7 @@ public class AuthorController {
     @Autowired
     private AuthorService authorService;
     @Autowired
-    private AuthorUtil authorUtil;
+    private CustomerService customerService;
 
     @GetMapping("/hot")
     public ResponseEntity<?> getFamousAuthor() {
@@ -68,8 +69,8 @@ public class AuthorController {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(new Message("Tác giả này đã tồn tại trong hệ thống"));
         } else {
             MultipartFile multipartFile = new MultilPartFile().createMultipartFileFromUrl(authorRequest.getAvatar(), authorRequest.getFileName());
-            String imageURL = authorUtil.uploadFile(multipartFile, "author");
-            Author author = authorUtil.addAuthor(authorRequest);
+            String imageURL = customerService.uploadFile(multipartFile, "author");
+            Author author = new AuthorUtil().addAuthor(authorRequest);
             author.setAvatar(imageURL.replace("http", "https"));
             authorService.addAuthor(author);
             return ResponseEntity.ok(new Message("Đã thêm tác giả bản thành công!"));

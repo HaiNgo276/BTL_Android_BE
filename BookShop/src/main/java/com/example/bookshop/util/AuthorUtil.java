@@ -16,7 +16,6 @@ import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 public class AuthorUtil {
-    private final Cloudinary cloudinary;
 
     public Author addAuthor(AuthorRequest authorRequest){
         Author author = new Author();
@@ -25,14 +24,4 @@ public class AuthorUtil {
         return author;
     }
 
-    public String uploadFile(MultipartFile multipartFile, String folderName) throws IOException {
-        Map<String, Object> uploadParams = new HashMap<>();
-        uploadParams.put("public_id", UUID.randomUUID().toString());
-        uploadParams.put("folder", folderName);
-
-        return cloudinary.uploader()
-                .upload(multipartFile.getBytes(), uploadParams)  //chuyển đổi tệp đa phương tiện thành mảng byte sau đó upload
-                .get("url")                                     //truy xuất URL của tệp
-                .toString();
-    }
 }

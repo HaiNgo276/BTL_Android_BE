@@ -248,11 +248,11 @@ public class ProductController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/rating")
-    public ResponseEntity<?> createRatingOrder(@RequestBody List<RatingRequest> ratingRequests) {
-        ratingService.createRating(ratingRequests);
-        return ResponseEntity.ok(new Message("Đánh giá sản phẩm thành công!"));
-    }
+//    @PostMapping("/rating")
+//    public ResponseEntity<?> createRatingOrder(@RequestBody List<RatingRequest> ratingRequests) {
+//        ratingService.createRating(ratingRequests);
+//        return ResponseEntity.ok(new Message("Đánh giá sản phẩm thành công!"));
+//    }
 
     @GetMapping("/rating_by_user")
     public ResponseEntity<?> getAllRatingByUser(@RequestHeader("user-key") String userKey,

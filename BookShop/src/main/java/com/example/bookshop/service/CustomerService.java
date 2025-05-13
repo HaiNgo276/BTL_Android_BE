@@ -59,5 +59,14 @@ public class CustomerService implements UserDetailsService {
         return new org.springframework.security.core.userdetails.User(customer.getName(), customer.getPassword(), Collections.singletonList(new SimpleGrantedAuthority("ROLE_"+customer.getRole().toUpperCase())));
     }
 
+    public String uploadFile(MultipartFile multipartFile, String folderName) throws IOException {
+        Map<String, Object> uploadParams = new HashMap<>();
+        uploadParams.put("public_id", UUID.randomUUID().toString());
+        uploadParams.put("folder", folderName);
 
+        return cloudinary.uploader()
+                .upload(multipartFile.getBytes(), uploadParams)  //chuyển đổi tệp đa phương tiện thành mảng byte sau đó upload
+                .get("url")                                     //truy xuất URL của tệp
+                .toString();
+    }
 }

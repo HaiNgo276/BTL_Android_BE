@@ -17,20 +17,15 @@ public class Rating {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     private int id;
-
     @Column(name = "comment")
     private String comment;
-
     @Column(name = "rating_level")
     private int ratingLevel;
-
     @Column(name = "createTime")
     private Date createTime;
-
     @ManyToOne
     @JoinColumn(name = "book_id")
     private Book book;
-    
     @ManyToOne
     @JoinColumn(name = "user_id")
     private Customer customer;

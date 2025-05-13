@@ -51,20 +51,20 @@ public class RatingService {
         return 5.0;
     }
 
-    public void createRating(List<RatingRequest> ratingRequests) {
-        for (RatingRequest ratingRequest : ratingRequests) {
-            Rating rating = new Rating();
-            Book book = productRepo.findById(ratingRequest.getBookId());
-            Customer customer = customerRepo.findById(ratingRequest.getUserId());
-            Order order = orderRepo.getOrderById(ratingRequest.getOrderId());
-            rating.setRatingLevel(ratingRequest.getRatingLevel());
-            rating.setBook(book);
-            rating.setComment(ratingRequest.getComment());
-            rating.setCustomer(customer);
-            rating.setCreateTime(new Date());
-            order.setIsRating(1);
-            orderRepo.save(order);
-            ratingRepo.save(rating);
-        }
-    }
+//    public void createRating(List<RatingRequest> ratingRequests) {
+//        for (RatingRequest ratingRequest : ratingRequests) {
+//            Rating rating = new Rating();
+//            Book book = productRepo.findById(ratingRequest.getBookId());
+//            Customer customer = customerRepo.findById(ratingRequest.getUserId());
+//            Order order = orderRepo.getOrderById(ratingRequest.getOrderId());
+//            rating.setRatingLevel(ratingRequest.getRatingLevel());
+//            rating.setBook(book);
+//            rating.setComment(ratingRequest.getComment());
+//            rating.setCustomer(customer);
+//            rating.setCreateTime(new Date());
+//            order.setIsRating(1);
+//            orderRepo.save(order);
+//            ratingRepo.save(rating);
+//        }
+//    }
 }

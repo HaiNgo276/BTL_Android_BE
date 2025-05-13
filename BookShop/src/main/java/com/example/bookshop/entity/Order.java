@@ -55,6 +55,8 @@ public class Order {
     @JoinColumn(name = "order_status_id")
     private OrderStatus orderStatus;
 
-    @Column(name = "isRating")
-    private int isRating;
+    @OneToMany(mappedBy = "order")
+    @JsonIgnore
+    List<OrderDetail> orderDetails;
+
 }
