@@ -5,19 +5,15 @@ import com.example.bookshop.dto.objectdto.authordto.AuthorDto;
 import com.example.bookshop.dto.objectdto.bookdto.*;
 import com.example.bookshop.dto.objectdto.supplierdto.SupplierDto;
 import com.example.bookshop.dto.request.BookRequest;
-import com.example.bookshop.dto.request.RatingRequest;
 import com.example.bookshop.dto.response.Error;
 import com.example.bookshop.dto.response.Message;
 import com.example.bookshop.dto.response.book.*;
-import com.example.bookshop.dto.response.rating.RatingResponse;
 import com.example.bookshop.entity.Book;
-import com.example.bookshop.entity.Rating;
 import com.example.bookshop.service.ProductService;
 import com.example.bookshop.service.RatingService;
 import com.example.bookshop.service.WishListItemService;
 import com.example.bookshop.util.BookUtil;
 import com.example.bookshop.util.MultilPartFile;
-import com.example.bookshop.util.RatingUtil;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -126,15 +122,6 @@ public class ProductController {
         List<BookBannerDto> bookBannerDtos = new BookUtil().addBookBanner(products);
         BookBannerResponse response = new BookBannerResponse(bookBannerDtos.size(), bookBannerDtos);
         return ResponseEntity.ok(response);
-    }
-
-    @GetMapping("/rating")
-    public ResponseEntity<?> getRatingByBook(@RequestParam("bookId") int bookId,
-                                             @RequestParam("limit") int limit,
-                                             @RequestParam("page") int page) {
-        Page<Rating> ratings = ratingService.getAllByBookId(bookId, limit, page);
-        RatingResponse ratingResponse = new RatingResponse(ratings.getContent().size(), new RatingUtil().addToRatingDto(ratings.getContent()));
-        return ResponseEntity.ok(ratingResponse);
     }
 
     @GetMapping("/incategory/{categoryId}")
@@ -246,25 +233,5 @@ public class ProductController {
         List<BookDto> bookDtos = new BookUtil().addBook(products);
         BookResponse response = new BookResponse(products.size(), bookDtos);
         return ResponseEntity.ok(response);
-    }
-
-    @PostMapping("/rating")
-    public ResponseEntity<?> createRatingOrder(@RequestBody List<RatingRequest> ratingRequests) {
-        ratingService.createRating(ratingRequests);
-        return ResponseEntity.ok(new Message("Đánh giá sản phẩm thành công!"));
-    }
-
-    @GetMapping("/rating_by_user")
-    public ResponseEntity<?> getAllRatingByUser(@RequestHeader("user-key") String userKey,
-                                                @RequestParam int limit,
-                                                @RequestParam int page) {
-        if (jwtUtil.isTokenExpired(userKey.replace("Bearer ", ""))) {
-            int userId = Integer.parseInt(jwtUtil.extractId(userKey.replace("Bearer ", "")));
-            Page<Rating> ratings = ratingService.getAllByBookId(userId, limit, page);
-            RatingResponse ratingResponse = new RatingResponse(ratings.getContent().size(), new RatingUtil().addToRatingDto(ratings.getContent()));
-            return ResponseEntity.ok(ratingResponse);
-        } else {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new Error(401, "AUT_02", "Userkey không hợp lệ hoặc đã hết hạn!", "USER_KEY"));
-        }
     }
 }
